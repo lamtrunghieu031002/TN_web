@@ -14,6 +14,8 @@ import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -109,7 +111,26 @@ public class UserServiceImpl implements UserService {
     // kiem tra otp va dat lai mat khau
     @Override
     public void ResetPassword(ResetPasswordRequest request){
+        User user=userRepository.findByEmail(request.getEmail())
+                .orElseThrow(()-> new RuntimeException("Không tìm thấy tài khoản với Email này "));
 
+        //kiem tra otp co dung khong
+        if(user.getResetPasswordOtp()==null||!user.getResetPasswordOtp().equals(request.getOtp())){
+            throw new RuntimeException("Mã otp không chính xác");
+        }
+        Duration duration=Duration.between(user.getOtpGenerationTime(), LocalDateTime.now());
+        if(duration.getSeconds()>300){
+            throw new RuntimeException("Mã otp đã hết hạn ,vui lòng yêu cầu mã mới !");
+        }
+        // otp chuan xoa otp cu di va doi mat khau
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setResetPasswordOtp(null);
+        user.setOtpGenerationTime(null);
+
+
+
+        userRepository.save(user);
     }
 
     // Hàm phụ trợ (Helper method) để chuyển đổi User Entity -> UserProfileResponse DTO

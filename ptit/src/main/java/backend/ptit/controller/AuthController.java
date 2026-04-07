@@ -1,6 +1,8 @@
 package backend.ptit.controller;
 
+import backend.ptit.dto.request.ForgotPasswordRequest;
 import backend.ptit.dto.request.LoginRequest;
+import backend.ptit.dto.request.ResetPasswordRequest;
 import backend.ptit.dto.request.SignupRequest;
 import backend.ptit.dto.response.JwtResponse;
 import backend.ptit.dto.response.MessageResponse;
@@ -11,6 +13,7 @@ import backend.ptit.repository.RoleRepository;
 import backend.ptit.repository.UserRepository;
 import backend.ptit.security.CustomUserDetail;
 import backend.ptit.security.jwt.JwtUtils;
+import backend.ptit.service.serviceImpl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,6 +39,7 @@ public class AuthController {
     private final RoleRepository roleRepository;
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
+    private final UserServiceImpl userService;
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
@@ -110,5 +114,15 @@ public class AuthController {
         return ResponseEntity.ok(new MessageResponse("Đăng ký tài khoản thành công"));
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String>forgotPassword(@RequestBody ForgotPasswordRequest request){
+        userService.ForgotPassword(request);
 
+        return ResponseEntity.ok("Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư!");
+    }
+    @PostMapping("/reset-password")
+    public ResponseEntity<String>resetPassword(@RequestBody ResetPasswordRequest request){
+        userService.ResetPassword(request);
+        return ResponseEntity.ok("Đặt lại mật khẩu thành công! Hãy đăng nhập bằng mật khẩu mới.");
+    }
 }
