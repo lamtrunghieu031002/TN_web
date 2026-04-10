@@ -7,7 +7,7 @@ import backend.ptit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Repository;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -57,6 +57,15 @@ public class UserController {
 
         userService.changePassword(username,request);
 
+        return ResponseEntity.ok("đổi mật khẩu thành công");
+    }
+
+    // api đổi mật khẩu user đang đăng nhập (không phụ thuộc username từ client)
+    @PutMapping("/password")
+    @PreAuthorize("hasAnyRole('STUDENT', 'TEACHER', 'ADMIN')")
+    public ResponseEntity<String> changePasswordForCurrentUser(Authentication authentication, @RequestBody ChangePasswordRequest request) {
+        String currentUsername = authentication.getName();
+        userService.changePassword(currentUsername, request);
         return ResponseEntity.ok("đổi mật khẩu thành công");
     }
 
