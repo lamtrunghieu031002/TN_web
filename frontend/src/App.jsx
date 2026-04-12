@@ -7,6 +7,9 @@ import { HomePage } from './pages/user/HomePage'
 import { ExamPage } from './pages/user/ExamPage'
 import { ProfilePage } from './pages/user/ProfilePage'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
+import { ForgotPassword } from './components/ForgotPassword'
+import { ResetPassword } from './components/ResetPassword'
+
 
 export default function App() {
   return (
@@ -17,6 +20,8 @@ export default function App() {
           <Route path="/exams" element={<ExamPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<ProfilePage />} />

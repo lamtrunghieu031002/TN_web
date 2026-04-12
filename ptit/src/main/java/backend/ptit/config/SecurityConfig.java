@@ -6,6 +6,7 @@ import backend.ptit.security.jwt.AuthTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -40,7 +41,22 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/auth/**").permitAll() // Cho phép tự do vào cửa Đăng nhập/Đăng ký
+                        // Cho phép tự do vào cửa Đăng nhập/Đăng ký
+                        auth.requestMatchers("/api/auth/**").permitAll()
+                                //Problems -Get cho user,student,admin
+                                .requestMatchers(HttpMethod.GET,"/api/problems/**")
+                                .hasAnyRole("USER","STUDENT","ADMIN")
+                                //Problems -put post delete chi admin
+                                .requestMatchers(HttpMethod.POST,"/api/problems/**")
+                                .hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.PUT,"/api/problems/**")
+                                .hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE,"/api/problems/**")
+                                .hasRole("ADMIN")
+                                // Submission cho ca 3
+                                .requestMatchers("/api/submissions/**")
+                                .hasAnyRole("USER","STUDENT","ADMIN")
+
                                 .anyRequest().authenticated() // Tất cả các cửa khác (như /api/users) đều phải quét vé
                 );
 
