@@ -8,7 +8,11 @@ import { ExamPage } from './pages/user/ExamPage'
 import { ProfilePage } from './pages/user/ProfilePage'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { ForgotPassword } from './components/ForgotPassword'
-import { ResetPassword } from './components/ResetPassword'
+import { ResetPassword } from './components/ResetPassword'  
+import {ProblemListPage} from './pages/user/ProblemListPage'
+import { ProblemDetailPage } from './pages/user/ProblemDetailPage'
+import { LeaderboardPage } from './pages/user/LeaderboardPage'
+import { StatusPage } from './pages/user/StatusPage'
 
 
 export default function App() {
@@ -22,10 +26,14 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/status" element={<StatusPage />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/problems" element={<ProblemListPage />} />
+            <Route path="/problems/:id" element={<ProblemDetailPage />} />
+            <Route path="/leaderboard" element={<LeaderboardPage />} />
           </Route>
         </Route>
       </Routes>

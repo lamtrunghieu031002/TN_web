@@ -1,9 +1,13 @@
+import { AUTH_STORAGE_KEY } from '../constants/storage'
+
 export function createApiClient(apiBase, token) {
   const request = async (path, { method = 'GET', body, useAuth = false } = {}) => {
     const headers = { 'Content-Type': 'application/json' }
+    const rawAuth = localStorage.getItem(AUTH_STORAGE_KEY)
+    const fallbackToken = rawAuth ? JSON.parse(rawAuth)?.token : null
 
-    if (useAuth && token) {
-      headers.Authorization = `Bearer ${token}`
+    if (useAuth && (token || fallbackToken)) {
+      headers.Authorization = `Bearer ${token || fallbackToken}`
     }
 
     const response = await fetch(`${apiBase}${path}`, {

@@ -2,6 +2,7 @@ package backend.ptit.service.serviceImpl;
 
 import backend.ptit.dto.request.SubmitRequest;
 import backend.ptit.dto.response.LeaderboardResponse;
+import backend.ptit.dto.response.SubmissionStatusResponse;
 import backend.ptit.dto.response.SubmitResponse;
 import backend.ptit.dto.response.UserStatsResponse;
 import backend.ptit.entity.Problem;
@@ -17,12 +18,15 @@ import backend.ptit.service.SubmissionService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
+import java.sql.Struct;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -124,7 +128,14 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     @Override
     public List<Submission> getHistory(Long userId, Long problemId) {
+
+
+
         return submissionRepo.findByUser_IdAndProblem_Id(userId, problemId);
+    }
+    @Override
+    public List<Submission> getUserHistory(Long userId) {
+        return submissionRepo.findByUserIdOrderBySubmittedAtDesc(userId);
     }
 
     // -------------------------------------------------------
@@ -176,10 +187,14 @@ public class SubmissionServiceImpl implements SubmissionService {
         }
 
         // Sort theo totalSolved DESC, nếu bằng nhau thì sort theo acceptanceRate DESC
-        leaderboard.sort(Comparator
-                .comparingInt(LeaderboardResponse::getTotalSolved).reversed()
-                .thenComparingDouble(LeaderboardResponse::getAcceptanceRate).reversed()
-        );
+        leaderboard.sort((a, b) -> {
+            // Sort totalSolved DESC
+            if (b.getTotalSolved() != a.getTotalSolved()) {
+                return b.getTotalSolved() - a.getTotalSolved();
+            }
+            // Nếu bằng nhau thì sort acceptanceRate DESC
+            return Double.compare(b.getAcceptanceRate(), a.getAcceptanceRate());
+        });
 
         // Gán rank
         for (int i = 0; i < leaderboard.size(); i++) {
@@ -292,4 +307,36 @@ public class SubmissionServiceImpl implements SubmissionService {
             return Collections.emptyList();
         }
     }
+    @Override
+    public Map<Long, String> getUserProblemStatus(Long userId) {
+        List<Submission> submissions = submissionRepo.findByUserIdOrderBySubmittedAtDesc(userId);
+        Map<Long, String> statusMap = new HashMap<>();
+        for (Submission s : submissions) {
+            Long problemId = s.getProblem().getId();
+            if (!statusMap.containsKey(problemId) ||
+                    s.getStatus() == Submission.SubmissionStatus.ACCEPTED) {
+                statusMap.put(problemId, s.getStatus().name());
+            }
+        }
+        return statusMap;
+    }
+
+    @Override
+    public List<SubmissionStatusResponse> getPublicStatus() {
+        return submissionRepo.findAllSubmissionsWithDetails()
+                .stream()
+                .map(s -> SubmissionStatusResponse.builder()
+                        .id(s.getId())
+                        .submittedAt(s.getSubmittedAt() != null
+                                ? s.getSubmittedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                                : "")
+                        .username(s.getUser() != null ? s.getUser().getUsername() : "Ẩn danh")
+                        .problemTitle(s.getProblem() != null ? s.getProblem().getTitle() : "Bài tập đã xóa")
+                        .problemId(s.getProblem() != null ? s.getProblem().getId() : null)
+                        .status(s.getStatus() != null && s.getStatus() == Submission.SubmissionStatus.ACCEPTED ? "AC" : "WA")
+                        .executionTimeMs(s.getExecutionTimeMs())
+                        .build())
+                .toList();
+    }
+
 }

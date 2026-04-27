@@ -29,9 +29,12 @@ export function AppLayout() {
             </div>
           </button>
 
-          <nav className="hidden items-center gap-8 text-sm font-semibold md:flex">
+          <nav className="hidden items-center flex-wrap gap-4 text-sm font-semibold md:flex">
             <TopNavLink to="/">Trang chủ</TopNavLink>
+            <TopNavLink to="/status">Trạng thái</TopNavLink>
             <TopNavLink to="/exams">Đề thi</TopNavLink>
+            <TopNavLink to="/problems">Luyện tập</TopNavLink>
+            <TopNavLink to="/leaderboard">Xếp hạng</TopNavLink>
             {auth ? <TopNavLink to="/profile">Tài khoản</TopNavLink> : null}
           </nav>
 

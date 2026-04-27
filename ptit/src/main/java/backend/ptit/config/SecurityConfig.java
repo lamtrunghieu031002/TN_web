@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +16,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableMethodSecurity
@@ -26,53 +30,54 @@ public class SecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthEntryPointJwt unauthorizedHandler;
 
-    // 1. Khai báo "Máy quét vé" (AuthTokenFilter)
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
         return new AuthTokenFilter();
     }
 
-    // 2. Xây dựng "Cửa bảo vệ" (Security Filter Chain)
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ← sửa
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth ->
-                        // Cho phép tự do vào cửa Đăng nhập/Đăng ký
-                        auth.requestMatchers("/api/auth/**").permitAll()
-                                //Problems -Get cho user,student,admin
-                                .requestMatchers(HttpMethod.GET,"/api/problems/**")
-                                .hasAnyRole("USER","STUDENT","ADMIN")
-                                //Problems -put post delete chi admin
-                                .requestMatchers(HttpMethod.POST,"/api/problems/**")
-                                .hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.PUT,"/api/problems/**")
-                                .hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE,"/api/problems/**")
-                                .hasRole("ADMIN")
-                                // Submission cho ca 3
-                                .requestMatchers("/api/submissions/**")
-                                .hasAnyRole("USER","STUDENT","ADMIN")
-
-                                .anyRequest().authenticated() // Tất cả các cửa khác (như /api/users) đều phải quét vé
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/problems/**").hasAnyRole("USER", "STUDENT", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/problems/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/problems/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/problems/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/all").hasRole("ADMIN")                        // ← thêm
+                        .requestMatchers(HttpMethod.PUT, "/api/users/*/roles").hasRole("ADMIN")
+                        .requestMatchers("/api/submissions/**").hasAnyRole("USER", "STUDENT", "ADMIN")
+                        .anyRequest().authenticated()
                 );
 
-        // BƯỚC QUAN TRỌNG NHẤT: Đặt máy quét vé vào ngay trước cửa ra vào
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
-    // 3. Cung cấp người quản lý xác thực (Authentication Manager)
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        // allowedOriginPatterns("*") hỗ trợ tất cả domain (kể cả Render URLs)
+        // và vẫn hoạt động với allowCredentials(true) - khác với setAllowedOrigins("*")
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
-    // 4. Cung cấp thuật toán mã hóa mật khẩu cực mạnh (BCrypt)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

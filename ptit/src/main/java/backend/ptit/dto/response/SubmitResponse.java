@@ -16,6 +16,7 @@ import java.util.Map;
 public class SubmitResponse {
     private Submission.SubmissionStatus status;
     private String message;
+    private String submittedAt;
     private List<TestCaseResult> testCaseResults;
     private long executionTimeMs;
 
