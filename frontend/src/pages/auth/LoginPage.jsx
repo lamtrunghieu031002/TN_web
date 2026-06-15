@@ -43,17 +43,15 @@ return (
             setLoading(true)
             setMessage('')
             try {
-
-                // const response = await client.post('/api/auth/login', data);
               // Gọi API đăng nhập
               const response = await authService.login(client, form)
-              
+
               // Lưu data (token, user info) vào LocalStorage & Context
-              // Tùy thuộc vào backend trả về gì, bạn có thể chỉnh lại (ví dụ response.data)
-              saveAuth(response) 
-              
-              // Chuyển hướng về trang chủ
-              navigate('/', { replace: true })
+              saveAuth(response)
+
+              // Admin → vào dashboard, user thường → trang chủ
+              const isAdmin = response.roles?.includes('ROLE_ADMIN')
+              navigate(isAdmin ? '/admin' : '/', { replace: true })
             } catch (error) {
               setMessage(`Lỗi đăng nhập: ${error.message || 'Sai tài khoản hoặc mật khẩu'}`)
             } finally {

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import {
   getAllProblems, createProblem, updateProblem, deleteProblem,
-  getAllUsers, updateUserRole
+  getAllUsers, updateUserRole, deleteUser
 } from '../../services/adminService'
+import { useAuth } from '../../hooks/useAuth'
 
 const TABS = ['Quản lý bài tập', 'Quản lý user']
 const DIFFICULTIES = ['EASY', 'MEDIUM', 'HARD']
@@ -15,6 +16,7 @@ const emptyForm = {
 }
 
 export function AdminDashboard() {
+  const { auth } = useAuth()
   const [tab, setTab] = useState(0)
   const [problems, setProblems] = useState([])
   const [users, setUsers] = useState([])
@@ -23,11 +25,6 @@ export function AdminDashboard() {
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(emptyForm)
   const [msg, setMsg] = useState('')
-
-  useEffect(() => {
-    if (tab === 0) fetchProblems()
-    else fetchUsers()
-  }, [tab])
 
   const fetchProblems = () => {
     setLoading(true)
@@ -42,6 +39,11 @@ export function AdminDashboard() {
       .then(res => setUsers(res.data))
       .finally(() => setLoading(false))
   }
+
+  useEffect(() => {
+    if (tab === 0) fetchProblems()
+    else fetchUsers()
+  }, [tab])
 
   const handleSubmit = async () => {
     try {
@@ -84,6 +86,17 @@ export function AdminDashboard() {
   const handleRoleChange = async (userId, role) => {
     await updateUserRole(userId, [role])
     fetchUsers()
+  }
+
+  const handleDeleteUser = async (user) => {
+    if (!confirm(`Xóa vĩnh viễn user "${user.username}"?\n\nUser này cùng toàn bộ submission sẽ biến mất.`)) return
+    try {
+      await deleteUser(user.id)
+      setMsg(`✅ Đã xoá user ${user.username}`)
+      fetchUsers()
+    } catch (err) {
+      setMsg(`❌ Không xoá được: ${err?.response?.data?.message || err.message}`)
+    }
   }
 
   const updateTestCase = (i, field, value) => {
@@ -299,6 +312,11 @@ export function AdminDashboard() {
       {/* ── TAB 1: USER ── */}
       {tab === 1 && (
         <div>
+          {msg && (
+            <div className="mb-4 px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+              {msg}
+            </div>
+          )}
           {loading ? (
             <div className="text-center text-slate-400 py-10">Đang tải...</div>
           ) : (
@@ -306,17 +324,22 @@ export function AdminDashboard() {
               <div className="grid grid-cols-12 text-xs font-bold uppercase text-slate-400 px-6 py-3 bg-slate-50 border-b">
                 <span className="col-span-1">ID</span>
                 <span className="col-span-3">Username</span>
-                <span className="col-span-4">Email</span>
-                <span className="col-span-4">Role</span>
+                <span className="col-span-3">Email</span>
+                <span className="col-span-3">Role</span>
+                <span className="col-span-2">Thao tác</span>
               </div>
               {users.length === 0 ? (
                 <div className="text-center text-slate-400 py-10">Chưa có user nào</div>
-              ) : users.map(u => (
+              ) : users.map(u => {
+                const isSelf = auth?.username === u.username
+                return (
                 <div key={u.id} className="grid grid-cols-12 items-center px-6 py-3 border-b border-slate-100 hover:bg-slate-50">
                   <span className="col-span-1 text-slate-400 text-sm">{u.id}</span>
-                  <span className="col-span-3 font-medium text-slate-700 text-sm">{u.username}</span>
-                  <span className="col-span-4 text-slate-500 text-sm">{u.email}</span>
-                  <div className="col-span-4 flex gap-1 flex-wrap">
+                  <span className="col-span-3 font-medium text-slate-700 text-sm">
+                    {u.username}{isSelf && <span className="ml-1 text-xs text-slate-400">(bạn)</span>}
+                  </span>
+                  <span className="col-span-3 text-slate-500 text-sm truncate">{u.email}</span>
+                  <div className="col-span-3 flex gap-1 flex-wrap">
                     {ROLES.map(r => (
                       <button
                         key={r}
@@ -331,8 +354,19 @@ export function AdminDashboard() {
                       </button>
                     ))}
                   </div>
+                  <div className="col-span-2">
+                    <button
+                      onClick={() => handleDeleteUser(u)}
+                      disabled={isSelf}
+                      title={isSelf ? 'Không thể tự xoá chính mình' : 'Xoá user'}
+                      className="text-xs bg-red-50 text-red-600 px-3 py-1 rounded-lg hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Xóa
+                    </button>
+                  </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

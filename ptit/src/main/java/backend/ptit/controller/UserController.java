@@ -10,6 +10,7 @@ import backend.ptit.entity.User;
 import backend.ptit.repository.RoleRepository;
 import backend.ptit.repository.UserRepository;
 import backend.ptit.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -88,7 +88,7 @@ public class UserController {
     @PreAuthorize("hasAnyRole('STUDENT', 'TEACHER', 'ADMIN')")
     public ResponseEntity<String> changePassword(
             @PathVariable String username,
-            @RequestBody ChangePasswordRequest request) {
+            @Valid @RequestBody ChangePasswordRequest request) {
         userService.changePassword(username, request);
         return ResponseEntity.ok("Đổi mật khẩu thành công");
     }
@@ -98,7 +98,7 @@ public class UserController {
     @PreAuthorize("hasAnyRole('STUDENT', 'TEACHER', 'ADMIN')")
     public ResponseEntity<String> changePasswordForCurrentUser(
             Authentication authentication,
-            @RequestBody ChangePasswordRequest request) {
+            @Valid @RequestBody ChangePasswordRequest request) {
         userService.changePassword(authentication.getName(), request);
         return ResponseEntity.ok("Đổi mật khẩu thành công");
     }
@@ -108,7 +108,7 @@ public class UserController {
     @PreAuthorize("hasAnyRole('STUDENT', 'TEACHER', 'ADMIN')")
     public ResponseEntity<String> updateProfile(
             @PathVariable String username,
-            @RequestBody UpdateProfileRequest request) {
+            @Valid @RequestBody UpdateProfileRequest request) {
         userService.UpdateProfile(username, request);
         return ResponseEntity.ok("Cập nhật thông tin thành công");
     }

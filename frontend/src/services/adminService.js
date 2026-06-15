@@ -26,3 +26,4 @@ export const deleteProblem = (id) => api.delete(`/api/problems/${id}`);
 // User management (đúng endpoint backend: /api/users)
 export const getAllUsers = () => api.get('/api/users/all');
 export const updateUserRole = (userId, roles) => api.put(`/api/users/${userId}/roles`, { roles });
+export const deleteUser = (userId) => api.delete(`/api/users/${userId}`);

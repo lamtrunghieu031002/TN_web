@@ -14,7 +14,6 @@ export function RegisterPage() {
     username: '',
     email: '',
     password: '',
-    role: 'student',
   })
 
   const client = useMemo(() => createApiClient(API_BASE, auth?.token), [auth?.token])
@@ -62,15 +61,6 @@ export function RegisterPage() {
             value={form.password}
             onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
           />
-          <select
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
-            value={form.role}
-            onChange={(event) => setForm((prev) => ({ ...prev, role: event.target.value }))}
-          >
-            <option value="student">student</option>
-            <option value="teacher">teacher</option>
-            <option value="admin">admin</option>
-          </select>
           <button
             disabled={loading}
             className="w-full rounded-md bg-brand-red px-4 py-2 font-semibold text-white hover:bg-brand-redDark disabled:opacity-60"

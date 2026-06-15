@@ -1,10 +1,10 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { ProtectedRoute } from './components/routing/ProtectedRoute'
+import { AdminRoute } from './components/routing/AdminRoute'
 import { AppLayout } from './layout/AppLayout'
 import { LoginPage } from './pages/auth/LoginPage'
 import { RegisterPage } from './pages/auth/RegisterPage'
 import { HomePage } from './pages/user/HomePage'
-import { ExamPage } from './pages/user/ExamPage'
 import { ProfilePage } from './pages/user/ProfilePage'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { ForgotPassword } from './components/ForgotPassword'
@@ -21,7 +21,6 @@ export default function App() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
-          <Route path="/exams" element={<ExamPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -30,10 +29,13 @@ export default function App() {
 
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/problems" element={<ProblemListPage />} />
             <Route path="/problems/:id" element={<ProblemDetailPage />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />
+          </Route>
+
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<AdminDashboard />} />
           </Route>
         </Route>
       </Routes>

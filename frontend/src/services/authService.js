@@ -12,7 +12,6 @@ export function register(client, form) {
       username: form.username,
       email: form.email,
       password: form.password,
-      roles: [form.role],
     },
   })
 }

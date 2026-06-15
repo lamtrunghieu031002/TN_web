@@ -14,8 +14,6 @@ import java.sql.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
-@Data
-@Builder
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -64,18 +62,17 @@ public class SqlSandboxServiceImpl implements SqlSandboxService {
             }
             finally {
                 // luon xoa schema tam thoi du co loi
-
                 try {
-                    execute(connection,"DROP SCHEMA IF EXISTS`"+schemaName+"`");
+                    execute(connection,"DROP SCHEMA IF EXISTS `"+schemaName+"`");
                     connection.commit();
-
                 } catch (Exception e) {
-                   return SandboxResult.error("Loi ket noi database:"+e.getMessage());
+                    log.error("Loi khi xoa schema tam {}: {}", schemaName, e.getMessage());
                 }
             }
 
         } catch (SQLException e) {
-            return null;
+            log.error("Loi ket noi database", e);
+            return SandboxResult.error("Loi ket noi database: " + e.getMessage());
         }
     }
 

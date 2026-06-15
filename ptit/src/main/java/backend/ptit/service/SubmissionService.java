@@ -18,6 +18,6 @@ public interface SubmissionService {
     List<LeaderboardResponse> getLeaderboard();
     List<Submission> getUserHistory(Long userId);
     List<SubmissionStatusResponse> getPublicStatus();
-    Map<Long, String> getUserProblemStatus(Long userId);  // ← trạng thái bài của user
+    Map<Long, String> getUserProblemStatus(Long userId);
 
 }

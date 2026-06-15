@@ -10,6 +10,7 @@ import backend.ptit.entity.Submission;
 import backend.ptit.entity.User;
 import backend.ptit.security.CustomUserDetail;
 import backend.ptit.service.SubmissionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,7 +35,7 @@ public class SubmissionController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('STUDENT')")
     public ResponseEntity<SubmitResponse> submit(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody SubmitRequest request) {
+            @Valid @RequestBody SubmitRequest request) {
 
         Long userId = ((CustomUserDetail) userDetails).getId();
         return ResponseEntity.ok(submissionService.submit(userId, request));

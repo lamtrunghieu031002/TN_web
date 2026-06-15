@@ -14,6 +14,7 @@ import backend.ptit.repository.UserRepository;
 import backend.ptit.security.CustomUserDetail;
 import backend.ptit.security.jwt.JwtUtils;
 import backend.ptit.service.serviceImpl.UserServiceImpl;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,7 +29,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "*", maxAge = 3600) // Cho phép frontend gọi qua cổng 3600
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -42,7 +42,7 @@ public class AuthController {
     private final UserServiceImpl userService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
         );
@@ -66,7 +66,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody SignupRequest signupRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
         if (userRepository.existsByUsername(signupRequest.getUsername())) {
             return ResponseEntity.badRequest().body(new MessageResponse("Lỗi: Username này đã tồn tại"));
         }
@@ -80,33 +80,10 @@ public class AuthController {
         user.setUsername(signupRequest.getUsername());
         user.setPassword(encoder.encode(signupRequest.getPassword()));
 
-        Set<String> strRoles = signupRequest.getRoles();
+        Role studentRole = roleRepository.findByName(ERole.ROLE_STUDENT)
+                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy quyền student"));
         Set<Role> roles = new HashSet<>();
-
-        if (strRoles == null) {
-            Role userRole = roleRepository.findByName(ERole.ROLE_STUDENT)
-                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy quyền"));
-            roles.add(userRole);
-        } else {
-            strRoles.forEach(role -> {
-                switch (role.toLowerCase()) {
-                    case "admin":
-                        Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy quyền admin"));
-                        roles.add(adminRole);
-                        break;
-                    case "teacher":
-                        Role teacherRole = roleRepository.findByName(ERole.ROLE_TEACHER)
-                                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy quyền teacher"));
-                        roles.add(teacherRole);
-                        break;
-                    default:
-                        Role studentRole = roleRepository.findByName(ERole.ROLE_STUDENT)
-                                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy quyền student"));
-                        roles.add(studentRole);
-                }
-            });
-        }
+        roles.add(studentRole);
 
         user.setRoles(roles);
         userRepository.save(user);
@@ -115,13 +92,13 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String>forgotPassword(@RequestBody ForgotPasswordRequest request){
+    public ResponseEntity<String>forgotPassword(@Valid @RequestBody ForgotPasswordRequest request){
         userService.ForgotPassword(request);
 
         return ResponseEntity.ok("Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư!");
     }
     @PostMapping("/reset-password")
-    public ResponseEntity<String>resetPassword(@RequestBody ResetPasswordRequest request){
+    public ResponseEntity<String>resetPassword(@Valid @RequestBody ResetPasswordRequest request){
         userService.ResetPassword(request);
         return ResponseEntity.ok("Đặt lại mật khẩu thành công! Hãy đăng nhập bằng mật khẩu mới.");
     }

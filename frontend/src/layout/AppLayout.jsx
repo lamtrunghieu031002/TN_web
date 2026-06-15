@@ -32,10 +32,12 @@ export function AppLayout() {
           <nav className="hidden items-center flex-wrap gap-4 text-sm font-semibold md:flex">
             <TopNavLink to="/">Trang chủ</TopNavLink>
             <TopNavLink to="/status">Trạng thái</TopNavLink>
-            <TopNavLink to="/exams">Đề thi</TopNavLink>
             <TopNavLink to="/problems">Luyện tập</TopNavLink>
             <TopNavLink to="/leaderboard">Xếp hạng</TopNavLink>
             {auth ? <TopNavLink to="/profile">Tài khoản</TopNavLink> : null}
+            {auth?.roles?.includes('ROLE_ADMIN') && (
+              <TopNavLink to="/admin">⚙️ Admin</TopNavLink>
+            )}
           </nav>
 
           <div className="flex items-center gap-3">

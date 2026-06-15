@@ -10,7 +10,7 @@ public interface ProblemService {
     Problem createProblem(Problem problem);
     Problem updateProblem(Long id, Problem problem);
     void deleteProblem(Long id);
-    List<Problem> filterProblems(String difficulty, String topic); // ← thêm
+    List<Problem> filterProblems(String difficulty, String topic);
     List<String> getAllTopics();
 
 }

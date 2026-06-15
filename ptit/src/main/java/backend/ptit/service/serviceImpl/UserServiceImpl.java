@@ -10,7 +10,6 @@ import backend.ptit.repository.UserRepository;
 import backend.ptit.service.EmailService;
 import backend.ptit.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
-@Service // Bắt buộc đặt ở đây để Spring Boot nhận diện
+@Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
@@ -84,7 +83,6 @@ public class UserServiceImpl implements UserService {
 
         User user=userRepository.findByUsername(username)
                 .orElseThrow(()-> new RuntimeException("không tìm thấy người dùng"));
-        user.setUsername(request.getFullName());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
         userRepository.save(user);

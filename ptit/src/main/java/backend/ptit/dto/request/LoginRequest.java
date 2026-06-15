@@ -1,20 +1,16 @@
 package backend.ptit.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Set;
-
-
 
 @Getter
 @Setter
 public class LoginRequest {
 
+    @NotBlank(message = "Username khong duoc trong")
     private String username;
 
-    private String email;
+    @NotBlank(message = "Password khong duoc trong")
     private String password;
-
-    private Set<String>roles; // mảng này chỉ cho admin và teacher login
 }

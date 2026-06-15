@@ -6,18 +6,27 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface SubmissionRepository extends JpaRepository<Submission,Long> {
 
-    List<Submission> findByUser_IdAndProblem_Id(Long userId, Long problemId);
+
+
+
+    @Query("SELECT s FROM Submission s " +
+            "LEFT JOIN FETCH s.problem LEFT JOIN FETCH s.user " +
+            "WHERE s.user.id = :userId AND s.problem.id = :problemId " +
+            "ORDER BY s.submittedAt DESC")
+    List<Submission> findByUser_IdAndProblem_Id(@Param("userId") Long userId,
+                                                @Param("problemId") Long problemId);
 
 
 
     // dem tong so lan nop cua user
     int countByUser_Id(Long userId);
 
-    // dem so lan accepted
+    // dem so lan accepted cua 1 user
     int countByUser_IdAndStatus(Long userId, Submission.SubmissionStatus status);
 
     // lay cac problem_id da accepted khong bi trung lap
@@ -36,12 +45,21 @@ public interface SubmissionRepository extends JpaRepository<Submission,Long> {
 
 
     //lay lich su cua 1 nguoi dung
-    @Query("SELECT s FROM Submission s WHERE s.user.id = :userId ORDER BY s.submittedAt DESC")
-    List<Submission> findByUserIdOrderBySubmittedAtDesc(Long userId);
+
 
     // Lấy tất cả lịch sử (dành cho tab Trạng thái chung của hệ thống)
     @Query("SELECT s FROM Submission s LEFT JOIN FETCH s.problem LEFT JOIN FETCH s.user ORDER BY s.submittedAt DESC")
     List<Submission> findAllSubmissionsWithDetails();
+    @Query("SELECT s FROM Submission s " +
+            "LEFT JOIN FETCH s.problem LEFT JOIN FETCH s.user " +
+            "WHERE s.user.id = :userId ORDER BY s.submittedAt DESC")
+    List<Submission> findByUserIdOrderBySubmittedAtDesc(@Param("userId") Long userId);
+    int countByStatus(Submission.SubmissionStatus status);
+
+    @Query("SELECT FUNCTION('DATE', s.submittedAt) AS day, COUNT(s) AS total " +
+            "FROM Submission s WHERE s.submittedAt >= :since " +
+            "GROUP BY FUNCTION('DATE', s.submittedAt) ORDER BY day")
+    List<Object[]> countSubmissionsByDay(@Param("since") LocalDate since);
 
 
 
